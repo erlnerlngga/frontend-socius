@@ -9,6 +9,7 @@ interface PropType {
   name: string;
   placeholder?: string;
   style?: string;
+  maxLength?: number;
 }
 
 const Input: FC<PropType> = ({
@@ -19,6 +20,7 @@ const Input: FC<PropType> = ({
   name,
   placeholder,
   style,
+  maxLength,
 }) => {
   return (
     <input
@@ -28,6 +30,7 @@ const Input: FC<PropType> = ({
       onChange={onChange}
       value={value}
       placeholder={placeholder}
+      maxLength={maxLength}
       className={`outline-none py-1.5 px-4 bg-neutral-800 text-gray-300 rounded-lg border-2 border-indigo-500 ${style}`}
     />
   );

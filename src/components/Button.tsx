@@ -9,12 +9,7 @@ interface PropType {
   onClick?: () => void;
 }
 
-const Button: FC<PropType> = ({
-  buttonType = "button",
-  children,
-  style,
-  onClick,
-}) => {
+const Button: FC<PropType> = ({ buttonType, children, style, onClick }) => {
   return (
     <button
       onClick={onClick}

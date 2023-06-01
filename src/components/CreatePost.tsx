@@ -31,7 +31,22 @@ const CreatePost: FC = () => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(imageSrc);
+
+    const img_url = imageSrc.map(async (val) => {
+      const formData = new FormData();
+
+      formData.append("file", val.file as Blob);
+      formData.append("upload_preset", "socius");
+
+      const data = await fetch(`${process.env.URL_IMAGE_UPLOAD}`, {
+        method: "POST",
+        body: formData,
+      }).then((r) => r.json());
+
+      return data.secure_url;
+    });
+
+    console.log(img_url);
   };
 
   return (

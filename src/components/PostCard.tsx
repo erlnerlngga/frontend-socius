@@ -6,6 +6,7 @@ import userImage from "../../public/user.png";
 import { IoChatboxEllipses } from "react-icons/io5";
 import Comment from "./Comment";
 import Modal from "./Modal";
+import Link from "next/link";
 
 interface PropType {
   post_id: string;
@@ -71,10 +72,19 @@ const PostCard: FC<PropType> = ({
       </div>
 
       <div>
-        <IoChatboxEllipses
-          onClick={handleOpen}
-          className="text-indigo-500 h-5 w-5 cursor-pointer ml-4 mb-8"
-        />
+        <div className="flex items-center gap-6 ml-4 mb-8">
+          <IoChatboxEllipses
+            onClick={handleOpen}
+            className="text-indigo-500 h-5 w-5 cursor-pointer"
+          />
+
+          <Link
+            href={"/home/comment/1"}
+            className="text-indigo-500 font-semibold"
+          >
+            {2} comments
+          </Link>
+        </div>
         {open && <Comment />}
       </div>
     </div>
