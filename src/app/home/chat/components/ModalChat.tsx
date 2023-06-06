@@ -2,13 +2,29 @@
 
 import { FC, ReactNode, useState } from "react";
 import ModalChildChat from "./ModalChildChat";
+import { UserType, RoomTypeRes } from "@/utils/types";
+
+interface contentType {
+  tokenString: string;
+  userData: UserType;
+  roomData?: RoomTypeRes[];
+}
 
 interface PropType {
   children: ReactNode;
-  content: FC;
+  content: FC<contentType>;
+  tokenString: string;
+  userData: UserType;
+  roomData?: RoomTypeRes[];
 }
 
-const ModalChat: FC<PropType> = ({ children, content }) => {
+const ModalChat: FC<PropType> = ({
+  children,
+  content,
+  tokenString,
+  userData,
+  roomData,
+}) => {
   const [open, setOpen] = useState(false);
 
   const handleClose = () => {
@@ -21,7 +37,15 @@ const ModalChat: FC<PropType> = ({ children, content }) => {
         {children}
       </div>
 
-      {open && <ModalChildChat close={handleClose} content={content} />}
+      {open && (
+        <ModalChildChat
+          close={handleClose}
+          content={content}
+          tokenString={tokenString}
+          userData={userData}
+          roomData={roomData}
+        />
+      )}
     </>
   );
 };

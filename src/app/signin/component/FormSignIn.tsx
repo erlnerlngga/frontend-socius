@@ -8,9 +8,31 @@ import { SignInType } from "@/utils/types";
 import { SignInValidation } from "@/utils/validate";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import env from "@/utils/constant";
+import LoadingButton from "@/components/LoadingButton";
+
+const signInAccount = async ({ email }: { email: string }) => {
+  return axios
+    .post(
+      `${env.url_api}/signin`,
+      {
+        email,
+      },
+      {
+        withCredentials: true,
+      }
+    )
+    .then((res) => res.data);
+};
 
 const FormSignIn: FC = () => {
   const route = useRouter();
+
+  const mutation = useMutation({
+    mutationFn: signInAccount,
+  });
 
   const formik = useFormik({
     initialValues: {
@@ -20,7 +42,9 @@ const FormSignIn: FC = () => {
     validateOnBlur: false,
     validateOnChange: false,
     onSubmit: async (values: SignInType) => {
-      console.log(values);
+      mutation.mutate({
+        email: `${values.email}`,
+      });
     },
   });
 
@@ -28,6 +52,14 @@ const FormSignIn: FC = () => {
     e.preventDefault();
     formik.handleSubmit(e);
   };
+
+  if (mutation.isSuccess) {
+    return (
+      <p className="text-gray-300 tracking-widest leading-relaxed text-center">
+        Check your email for sign in ... 😎
+      </p>
+    );
+  }
 
   return (
     <>
@@ -46,7 +78,14 @@ const FormSignIn: FC = () => {
           />
         </div>
 
-        <Button buttonType="submit">Sign in</Button>
+        <Button
+          buttonType="submit"
+          style={`${
+            mutation.isLoading ? `cursor-not-allowed` : `cursor-pointer`
+          }`}
+        >
+          {mutation.isLoading ? <LoadingButton /> : "Sign in"}
+        </Button>
 
         <div className="flex items-center gap-1 justify-center mt-2.5">
           <p className="text-gray-400">Don&apos;t have a account?</p>

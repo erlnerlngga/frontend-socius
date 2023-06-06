@@ -3,16 +3,31 @@
 import { FC, ReactNode, useEffect, useRef } from "react";
 import userImage from "../../public/user.png";
 import Image from "next/image";
+import { UserType, RoomTypeRes } from "@/utils/types";
 
 import { IoClose } from "react-icons/io5";
 
-interface PropType {
-  close: () => void;
-
-  content: FC;
+interface contentType {
+  tokenString: string;
+  userData: UserType;
+  roomData?: RoomTypeRes[];
 }
 
-const ModalChildChat: FC<PropType> = ({ close, content }) => {
+interface PropType {
+  close: () => void;
+  tokenString: string;
+  content: FC<contentType>;
+  userData: UserType;
+  roomData?: RoomTypeRes[];
+}
+
+const ModalChildChat: FC<PropType> = ({
+  close,
+  content,
+  tokenString,
+  userData,
+  roomData,
+}) => {
   const Component = content;
 
   return (
@@ -32,7 +47,11 @@ const ModalChildChat: FC<PropType> = ({ close, content }) => {
           </div>
 
           <hr className="border-1 border-gray-500 mb-6" />
-          <Component />
+          <Component
+            tokenString={tokenString}
+            userData={userData}
+            roomData={roomData}
+          />
         </div>
       </div>
     </>

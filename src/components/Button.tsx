@@ -14,7 +14,7 @@ const Button: FC<PropType> = ({ buttonType, children, style, onClick }) => {
     <button
       onClick={onClick}
       type={buttonType}
-      className={`py-1.5 px-6 w-full shadow-lg bg-indigo-500 tracking-wider text-white font-semibold rounded-lg transition hover:bg-opacity-80 ${style}`}
+      className={`py-1.5 px-6 w-full shadow-lg bg-indigo-500 tracking-wider text-white flex justify-center font-semibold rounded-lg transition hover:bg-opacity-80 ${style}`}
     >
       {children}
     </button>

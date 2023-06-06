@@ -2,15 +2,38 @@
 
 import { FC, FormEvent } from "react";
 import { useFormik } from "formik";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { SignUpType } from "@/utils/types";
 import { SignUpValidation } from "@/utils/validate";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import env from "@/utils/constant";
+import LoadingButton from "@/components/LoadingButton";
+
+const createAccount = ({ name, email }: { name: string; email: string }) => {
+  return axios
+    .post(
+      `${env.url_api}/signup`,
+      {
+        user_name: name.toLowerCase(),
+        email,
+      },
+      {
+        withCredentials: true,
+      }
+    )
+    .then((res) => res.data);
+};
 
 const FormSignUp: FC = () => {
   const route = useRouter();
+
+  const mutation = useMutation({
+    mutationFn: createAccount,
+  });
 
   const formik = useFormik({
     initialValues: {
@@ -21,7 +44,7 @@ const FormSignUp: FC = () => {
     validateOnBlur: false,
     validateOnChange: false,
     onSubmit: async (values: SignUpType) => {
-      console.log(values);
+      mutation.mutate({ name: `${values.name}`, email: `${values.email}` });
     },
   });
 
@@ -29,6 +52,14 @@ const FormSignUp: FC = () => {
     e.preventDefault();
     formik.handleSubmit(e);
   };
+
+  if (mutation.isSuccess) {
+    return (
+      <p className="text-gray-300 tracking-widest leading-relaxed text-center">
+        Check your email for sign in ... 😎
+      </p>
+    );
+  }
 
   return (
     <>
@@ -59,7 +90,14 @@ const FormSignUp: FC = () => {
           />
         </div>
 
-        <Button buttonType="submit">Sign up</Button>
+        <Button
+          buttonType="submit"
+          style={`${
+            mutation.isLoading ? `cursor-not-allowed` : `cursor-pointer`
+          }`}
+        >
+          {mutation.isLoading ? <LoadingButton /> : "Sign up"}
+        </Button>
 
         <div className="flex items-center gap-1 justify-center mt-2.5">
           <p className="text-gray-400">Already have a account?</p>

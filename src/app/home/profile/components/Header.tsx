@@ -7,55 +7,179 @@ import convertToBase64 from "@/utils/convert";
 import { FaEdit } from "react-icons/fa";
 import { useFormik } from "formik";
 import { SignUpValidation } from "@/utils/validate";
-import { SignUpType } from "@/utils/types";
+import { SignUpType, UserType } from "@/utils/types";
 import Button from "@/components/Button";
 import { Toaster } from "react-hot-toast";
+import env from "@/utils/constant";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import LoadingButton from "@/components/LoadingButton";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 
-interface PropType {
-  name: string;
+const updateProfile = async ({
+  user_id,
+  user_name,
+  email,
+  photo_profile,
+  tokenString,
+  route,
+}: {
+  user_id: string;
+  user_name: string;
   email: string;
-  image: string;
+  photo_profile: string;
+  tokenString: string;
+  route: AppRouterInstance;
+}) => {
+  const res = await axios.put(
+    `${env.url_api}/updateUser`,
+    {
+      user_id,
+      user_name,
+      email,
+      photo_profile,
+    },
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenString}`,
+      },
+    }
+  );
+
+  if (res.status !== 200) throw new Error("failed to post data");
+
+  route.push("/home");
+};
+
+function delay(milliseconds: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
 }
 
-const Header: FC<PropType> = ({ name, email, image }) => {
+const uploadImage = async ({
+  user_id,
+  user_name,
+  email,
+  tokenString,
+  route,
+  file,
+}: {
+  file: FileList;
+  user_id: string;
+  user_name: string;
+  email: string;
+  tokenString: string;
+  route: AppRouterInstance;
+}) => {
+  const formData = new FormData();
+
+  formData.append("file", file[0]);
+  formData.append("upload_preset", "socius");
+
+  const data = await fetch(env.url_image, {
+    method: "POST",
+    body: formData,
+  });
+
+  const dataImage = await data.json();
+
+  await delay(500);
+
+  const update = await updateProfile({
+    user_id,
+    user_name,
+    email,
+    tokenString,
+    route,
+    photo_profile: dataImage.secure_url,
+  });
+
+  return update;
+};
+
+interface PropType {
+  userData: UserType;
+  tokenString: string;
+}
+
+const Header: FC<PropType> = ({ userData, tokenString }) => {
   const [isEdit, setIsEdit] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const filePicker = useRef<HTMLInputElement>(null);
+  const route = useRouter();
+
+  const mutation = useMutation({
+    mutationFn: updateProfile,
+  });
+
+  const mutationUpload = useMutation({
+    mutationFn: uploadImage,
+  });
 
   const [imageSrc, setImageSrc] = useState<{
-    file: object;
+    file: FileList | null;
     img: string | StaticImageData;
   }>({
-    file: {},
-    img: image || userImage,
+    file: null,
+    img: userData.photo_profile || userImage,
   });
 
   const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const img = (await convertToBase64(e.target.files[0])) as string;
-      setImageSrc({ file: e.target.files[0], img });
+      setImageSrc({ file: e.target.files, img });
     }
   };
 
   const formik = useFormik({
     initialValues: {
-      name: name,
-      email: email,
+      name: userData.user_name,
+      email: userData.email,
     },
     validate: SignUpValidation,
     validateOnBlur: false,
     validateOnChange: false,
     onSubmit: async (values: SignUpType) => {
+      setIsLoading((cur) => !cur);
       values = await Object.assign(values, { image: imageSrc.file });
-      console.log(values);
+
+      if (values.email === undefined || values.name === undefined)
+        throw new Error("data is empty");
+
+      if (values.image !== null && values.image !== undefined) {
+        mutationUpload.mutate({
+          user_id: userData.user_id,
+          user_name: `${values.name}`,
+          email: `${values.email}`,
+          file: values.image,
+          tokenString: tokenString,
+          route,
+        });
+      }
+
+      if (imageSrc.file === null) {
+        mutation.mutate({
+          user_id: userData.user_id,
+          user_name: values.name,
+          email: values.email,
+          photo_profile: userData.photo_profile,
+          tokenString: tokenString,
+          route,
+        });
+      }
     },
   });
 
   const handleCancel = () => {
-    formik.values.name = name;
-    formik.values.email = email;
+    formik.values.name = userData.user_name;
+    formik.values.email = userData.email;
     setImageSrc({
-      file: {},
-      img: image || userImage,
+      file: null,
+      img: userData.photo_profile || userImage,
     });
     setIsEdit(false);
   };
@@ -132,7 +256,12 @@ const Header: FC<PropType> = ({ name, email, image }) => {
               >
                 cancel
               </Button>
-              <Button buttonType="submit">save</Button>
+              <Button
+                buttonType="submit"
+                style={`${isLoading ? "cursor-not-allowed" : "cursor-pointer"}`}
+              >
+                {isLoading ? <LoadingButton /> : "save"}
+              </Button>
             </div>
           )}
         </form>

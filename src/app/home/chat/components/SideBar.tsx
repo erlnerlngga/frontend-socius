@@ -1,32 +1,29 @@
 "use client";
 
-import Image from "next/image";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
-import userImage from "../../../../../public/user.png";
-import { FaArrowLeft, FaEdit, FaTrashAlt } from "react-icons/fa";
-import { ChangeEvent, FC, useState } from "react";
-import Button from "@/components/Button";
-import ModalChat from "./ModalChat";
-import EditRoomName from "./EditRoomName";
+import { FC, useState } from "react";
 import { IoClose, IoChatboxEllipses } from "react-icons/io5";
 import RoomCard from "./RoomCard";
+import { UserType, RoomTypeRes } from "@/utils/types";
 
 interface PropType {
   isHome: boolean;
+  roomData: RoomTypeRes[];
+  tokenString: string;
+  userData: UserType;
 }
 
-const SideBar: FC<PropType> = ({ isHome }) => {
+const SideBar: FC<PropType> = ({ isHome, roomData, tokenString, userData }) => {
   const pathname = usePathname();
   const path = pathname.split("/").slice(-1)[0];
 
   const [open, setOpen] = useState(false);
 
-  const [find, setFind] = useState<string>();
+  // const [find, setFind] = useState<string>();
 
-  const handleFind = (e: ChangeEvent<HTMLInputElement>) => {
-    setFind(e.currentTarget.value);
-  };
+  // const handleFind = (e: ChangeEvent<HTMLInputElement>) => {
+  //   setFind(e.currentTarget.value);
+  // };
 
   const handleOpen = () => {
     setOpen((cur) => !cur);
@@ -54,11 +51,16 @@ const SideBar: FC<PropType> = ({ isHome }) => {
 
         <div className="sidebar flex flex-col gap-6 overflow-y-scroll px-2 sm:px-2">
           <>
-            {Array(5)
-              .fill(0)
-              .map((val, idx) => {
-                return <RoomCard key={idx} />;
-              })}
+            {roomData.map((val, idx) => {
+              return (
+                <RoomCard
+                  key={idx}
+                  tokenString={tokenString}
+                  roomData={val}
+                  userData={userData}
+                />
+              );
+            })}
           </>
         </div>
       </section>

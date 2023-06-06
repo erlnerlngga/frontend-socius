@@ -6,24 +6,19 @@ import userImage from "../../public/user.png";
 import { IoChatboxEllipses } from "react-icons/io5";
 import Comment from "./Comment";
 import Modal from "./Modal";
-import Link from "next/link";
+import LinkCustom from "./LinkCustom";
+import { Image_PostType, UserType, GetPostType } from "@/utils/types";
 
 interface PropType {
-  post_id: string;
-  user_name: string;
-  photo_profile: string;
-  post_content: string;
-  post_images?: string[];
-  params: { params: { postId: string } };
+  userData: UserType;
+  postData: GetPostType
+  tokenString: string;
 }
 
 const PostCard: FC<PropType> = ({
-  post_id,
-  user_name,
-  photo_profile,
-  post_content,
-  post_images,
-  params,
+  userData,
+  postData,
+  tokenString,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -36,38 +31,39 @@ const PostCard: FC<PropType> = ({
       <div className="flex gap-4 items-center px-4">
         <div className="relative w-10 h-10 lg:w-16 lg:h-16">
           <Image
-            src={userImage}
-            alt="user image"
+            src={postData.photo_profile || userImage}
+            alt={`${postData.user_name} photo`}
             fill
             className="rounded-full"
           />
         </div>
 
-        <p className={`text-gray-300 tracking-wider`}>erlan erlangga</p>
+        <p className={`text-gray-300 tracking-wider`}>{postData.user_name}</p>
       </div>
 
       {/* <hr className="border-2 border-indigo-900 mb-8" /> */}
 
       <div className="px-4">
         <p className="text-gray-300 tracking-wider leading-relaxed mb-6">
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Inventore
-          laboriosam quo vitae in ipsum ea explicabo quas dolorem maxime
-          dignissimos!
+          {postData.content}
         </p>
 
         <div className="grid grid-cols-2 gap-4">
-          <Modal image="https://images.unsplash.com/photo-1627853585634-7cbfadc6b974?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=772&q=80">
-            <div className="relative h-40 sm:h-64 md:h-72">
-              <Image
-                src={
-                  "https://images.unsplash.com/photo-1627853585634-7cbfadc6b974?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=772&q=80"
-                }
-                fill
-                alt="Phot"
-                className="rounded-lg object-cover"
-              />
-            </div>
-          </Modal>
+          {postData.images &&
+            postData.images.map((val, idx) => {
+              return (
+                <Modal key={idx} image={val.image}>
+                  <div className="relative h-40 sm:h-64 md:h-72">
+                    <Image
+                      src={val.image}
+                      fill
+                      alt={`${val.image_post_id}`}
+                      className="rounded-lg object-cover"
+                    />
+                  </div>
+                </Modal>
+              );
+            })}
         </div>
       </div>
 
@@ -78,14 +74,20 @@ const PostCard: FC<PropType> = ({
             className="text-indigo-500 h-5 w-5 cursor-pointer"
           />
 
-          <Link
-            href={"/home/comment/1"}
+          <LinkCustom
+            href={`/home/comment/${postData.post_id}`}
             className="text-indigo-500 font-semibold"
           >
-            {2} comments
-          </Link>
+            {postData.number_of_comment} comments
+          </LinkCustom>
         </div>
-        {open && <Comment />}
+        {open && (
+          <Comment
+            tokenString={tokenString}
+            userData={userData}
+            postData={postData}
+          />
+        )}
       </div>
     </div>
   );

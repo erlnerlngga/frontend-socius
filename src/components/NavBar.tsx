@@ -2,14 +2,12 @@
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 import socius from "../../public/socius.svg";
 import userImage from "../../public/user.png";
 import {
   FaBell,
   FaHome,
   FaEnvelope,
-  FaUserFriends,
   FaSearch,
   FaSignOutAlt,
   FaUserAlt,
@@ -17,10 +15,77 @@ import {
 } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { FC, useState } from "react";
+import { UserType } from "@/utils/types";
+import axios from "axios";
+import env from "@/utils/constant";
+import { useQuery } from "@tanstack/react-query";
+import LinkCustom from "./LinkCustom";
 
-const NavBar: FC = () => {
+const getCountNotification = async ({
+  user_id,
+  tokenString,
+}: {
+  user_id: string;
+  tokenString: string;
+}) => {
+  const res = await axios.get(
+    `${env.url_api}/getCountNotification/${user_id}`,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenString}`,
+      },
+    }
+  );
+
+  if (res.status !== 200) throw new Error("failed to fetch");
+
+  return res.data;
+};
+
+const getCountMessage = async ({
+  user_id,
+  tokenString,
+}: {
+  user_id: string;
+  tokenString: string;
+}) => {
+  const res = await axios.get(
+    `${env.url_api}/ws/getAllUnreadMessage/${user_id}`,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenString}`,
+      },
+    }
+  );
+
+  if (res.status !== 200) throw new Error("failed to fetch");
+
+  return res.data;
+};
+
+interface PropType {
+  userData: UserType;
+  tokenString: string;
+}
+
+const NavBar: FC<PropType> = ({ userData, tokenString }) => {
   const pathname = usePathname();
   const path = pathname.split("/").slice(-1)[0];
+
+  const getNotif = useQuery({
+    queryKey: ["getCountNotif"],
+    queryFn: () =>
+      getCountNotification({ user_id: userData.user_id, tokenString }),
+  });
+
+  const getMsg = useQuery({
+    queryKey: ["getCountMsg"],
+    queryFn: () => getCountMessage({ user_id: userData.user_id, tokenString }),
+  });
 
   const [open, setOpen] = useState(false);
 
@@ -61,7 +126,7 @@ const NavBar: FC = () => {
         </div>
 
         <div className="flex flex-col gap-6">
-          <Link
+          <LinkCustom
             href={"/home"}
             className={`flex items-center gap-6 px-6 py-4 sm:py-2 sm:px-2.5 lg:px-6 lg:py-4 rounded-full shadow ${
               path === "home" && "bg-slate-700"
@@ -73,9 +138,9 @@ const NavBar: FC = () => {
             >
               Home
             </p>
-          </Link>
+          </LinkCustom>
 
-          <Link
+          <LinkCustom
             href={"/home/chat"}
             className={`flex items-center gap-6 px-6 py-4 sm:py-2 sm:px-2.5 lg:px-6 lg:py-4 rounded-full shadow ${
               path === "chat" && "bg-slate-700"
@@ -83,18 +148,20 @@ const NavBar: FC = () => {
           >
             <div className="relative">
               <FaEnvelope className="w-6 h-6 text-indigo-500" />
-              <span className="absolute -top-3 text-xs -right-3 w-5 h-5 text-gray-300 bg-red-700 grid place-items-center rounded-full">
-                2
-              </span>
+              {getMsg.isSuccess && getMsg.data.unread_message > 0 && (
+                <span className="absolute -top-3 text-xs -right-3 w-5 h-5 text-gray-300 bg-red-700 grid place-items-center rounded-full">
+                  {getMsg.isSuccess && getMsg.data.unread_message}
+                </span>
+              )}
             </div>
             <p
               className={`sm:hidden lg:block text-gray-300 font-medium text-lg tracking-wider`}
             >
               Chat
             </p>
-          </Link>
+          </LinkCustom>
 
-          <Link
+          <LinkCustom
             href={"/home/search"}
             className={`flex items-center gap-6 px-6 py-4 sm:py-2 sm:px-2.5 lg:px-6 lg:py-4 rounded-full  shadow ${
               path === "search" && "bg-slate-700"
@@ -106,9 +173,9 @@ const NavBar: FC = () => {
             >
               Search Friends
             </p>
-          </Link>
+          </LinkCustom>
 
-          <Link
+          <LinkCustom
             href={"/home/notification"}
             className={`flex items-center gap-6 px-6 py-4 sm:py-2 sm:px-2.5 lg:px-6 lg:py-4 rounded-full  shadow ${
               path === "notification" && "bg-slate-700"
@@ -116,18 +183,20 @@ const NavBar: FC = () => {
           >
             <div className="relative">
               <FaBell className="w-6 h-6 text-indigo-500" />
-              <span className="absolute -top-3 text-xs -right-2 w-5 h-5 text-gray-300 bg-red-700 grid place-items-center rounded-full">
-                2
-              </span>
+              {getNotif.isSuccess && getNotif.data.number > 0 && (
+                <span className="absolute -top-3 text-xs -right-2 w-5 h-5 text-gray-300 bg-red-700 grid place-items-center rounded-full">
+                  {getNotif.isSuccess && getNotif.data.number}
+                </span>
+              )}
             </div>
             <p
               className={`sm:hidden lg:block text-gray-300 font-medium text-lg tracking-wider`}
             >
               Notifications
             </p>
-          </Link>
+          </LinkCustom>
 
-          <Link
+          <LinkCustom
             href={"/home/profile"}
             className={`flex items-center gap-6 px-6 py-4 sm:py-2 sm:px-2.5 lg:px-6 lg:py-4 rounded-full  shadow ${
               (path === "profile" || path === "friend" || path === "photo") &&
@@ -140,9 +209,9 @@ const NavBar: FC = () => {
             >
               Profile
             </p>
-          </Link>
+          </LinkCustom>
 
-          <Link
+          <LinkCustom
             href={"/signout"}
             className="flex items-center gap-6 px-6 py-4 sm:py-2 sm:px-2.5 lg:px-6 lg:py-4 rounded-full  shadow"
           >
@@ -152,20 +221,20 @@ const NavBar: FC = () => {
             >
               Sign out
             </p>
-          </Link>
+          </LinkCustom>
         </div>
 
         <div className="flex items-center gap-4 self-center">
           <div className="relative w-10 h-10 lg:w-16 lg:h-16">
             <Image
-              src={userImage}
+              src={userData.photo_profile || userImage}
               alt="user image"
               fill
-              className="rounded-full"
+              className="rounded-full object-cover"
             />
           </div>
           <p className={`sm:hidden lg:block text-gray-300 tracking-wider`}>
-            erlan erlangga
+            {userData.user_name}
           </p>
         </div>
       </section>
