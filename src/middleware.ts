@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
 
     if (res.status === "ok") {
       // set cookie
-      const response = NextResponse.redirect(`${env.url_this}/home`);
+      const response = NextResponse.redirect(new URL(`/home`, request.url));
       response.cookies.set({
         name: "token-user",
         value: res.token,
@@ -65,7 +65,7 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
-    return NextResponse.redirect(`${env.url_this}/signup`);
+    return NextResponse.redirect(new URL(`/signup`, request.url));
   }
 
   if (request.nextUrl.pathname.startsWith("/home")) {
@@ -75,13 +75,13 @@ export async function middleware(request: NextRequest) {
     let userDataString = request.cookies.get("user-data")?.value;
 
     if (!tokenString || !userDataString) {
-      return NextResponse.redirect(`${env.url_this}/signup`);
+      return NextResponse.redirect(new URL(`/signup`, request.url));
     }
     const userData = JSON.parse(userDataString) as UserType;
     const res = (await justCheck(tokenString)) as VerifyResType;
 
     if (res.status !== "ok") {
-      return NextResponse.redirect(`${env.url_this}/signup`);
+      return NextResponse.redirect(new URL(`/signup`, request.url));
     }
 
     const response = NextResponse.next();
@@ -105,7 +105,8 @@ export async function middleware(request: NextRequest) {
     // get the cookie
     let tokenString = request.cookies.get("token-user")?.value;
 
-    if (!tokenString) return NextResponse.redirect(`${env.url_this}/signup`);
+    if (!tokenString)
+      return NextResponse.redirect(new URL(`/signup`, request.url));
 
     const response = NextResponse.redirect(`${env.url_this}`);
     response.cookies.set({

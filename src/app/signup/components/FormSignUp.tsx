@@ -2,7 +2,7 @@
 
 import { FC, FormEvent } from "react";
 import { useFormik } from "formik";
-import { Toaster, toast } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { SignUpType } from "@/utils/types";
 import { SignUpValidation } from "@/utils/validate";
@@ -23,6 +23,9 @@ const createAccount = ({ name, email }: { name: string; email: string }) => {
       },
       {
         withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     )
     .then((res) => res.data);

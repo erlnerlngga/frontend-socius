@@ -22,6 +22,9 @@ const signInAccount = async ({ email }: { email: string }) => {
       },
       {
         withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     )
     .then((res) => res.data);

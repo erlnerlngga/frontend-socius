@@ -10,8 +10,8 @@ const nextConfig = {
   },
   env: {
     URL_IMAGE_UPLOAD: "https://api.cloudinary.com/v1_1/dzdlnbckj/image/upload",
-    URL_API: "http://localhost:8080",
-    WS_URL: "ws://localhost:8080",
+    URL_API: "https://backend-socius-production.up.railway.app",
+    WS_URL: "wss://backend-socius-production.up.railway.app",
     URL_THIS: "http://localhost:3000"
   }
 }
