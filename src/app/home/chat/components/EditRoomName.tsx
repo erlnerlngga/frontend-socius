@@ -8,21 +8,24 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import env from "@/utils/constant";
 import { useRouter } from "next/navigation";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 
 const updateRoomName = async ({
   room_id,
-  room_name,
+  name_room,
   tokenString,
+  route,
 }: {
   room_id: string;
-  room_name: string;
+  name_room: string;
   tokenString: string;
+  route: AppRouterInstance;
 }) => {
   const res = await axios.put(
     `${env.url_api}/ws/updateRoomName`,
     {
       room_id,
-      room_name,
+      name_room,
     },
     {
       withCredentials: true,
@@ -35,7 +38,7 @@ const updateRoomName = async ({
 
   if (res.status !== 200) throw new Error("failed to post");
 
-  return res.data;
+  route.push("home/chat");
 };
 
 interface PropType {
@@ -61,11 +64,10 @@ const EditRoomName: FC<PropType> = ({ tokenString, roomData, userData }) => {
 
     mutation.mutate({
       room_id: roomData.room_id,
-      room_name: roomName,
+      name_room: roomName,
       tokenString,
+      route,
     });
-
-    if (mutation.isSuccess) route.refresh();
   };
 
   return (
